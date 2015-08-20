@@ -384,7 +384,7 @@ def initialize_session():
     # l.stop() # will stop the looping calls
     app.logger.info(request.data)
     # return make_custom_response(data,200)
-    return make_response(data)
+    return make_response(str(data))
 
 # @crossdomain(origin='*')
 # @cross_origin()
@@ -435,7 +435,7 @@ def classify_json():
     print "data: " + str(data)
     # time.sleep(5)
     # return make_custom_response(data, 200)
-    return make_response(data)
+    return make_response(str(data))
 
 # The @app.route function decorators map endpoints to functions.
 @app.route(ROOT + '/mass', methods=['POST', 'GET'])
@@ -674,6 +674,7 @@ if __name__ == '__main__':
         #app.run(host='0.0.0.0', port=FLASKPORT, ssl_context=ctx)
         app.run(host='0.0.0.0', port=FLASKPORT, ssl_context='adhoc', threaded=True)
     else:
+        # app.run()
         app.run(host='0.0.0.0', port=FLASKPORT, debug=DEBUG, threaded=True)
 
 
