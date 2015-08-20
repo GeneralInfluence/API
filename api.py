@@ -411,6 +411,7 @@ def classify_json():
             sentences = data['sentences']
             models = data['model']
             predictions = []
+            probabilities = []
             for model in models:
                 if (model in MODEL_MAPS):
                     print model
@@ -422,13 +423,17 @@ def classify_json():
                             model_initialized = True
                     if model_initialized:
                         ideanet = IDEANETS[model]
-                        predictions += ideanet.classify(sentences).tolist()
+                        this_pred = ideanet.classify(sentences)
+                        probabilities += this_pred['prob_0_1']
+                        predictions.append(this_pred['pred'])
             data = {"status":"success",
-                    "predictions":predictions}
+                    "predictions":predictions,
+                    "probabilities":probabilities}
 
         except:
             data = {"status":"failure",
-                    "predictions":[]}
+                    "predictions":[],
+                    "probabilities":[]}
 
     # if request.method == 'GET':
         # This is a placeholder for a more informative endpoint.
