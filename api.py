@@ -414,8 +414,7 @@ def classify_json():
             probabilities = []
             for model in models:
                 if (model in MODEL_MAPS):
-                    print model
-                    print IDEANETS
+                    app.logger.info(model)
                     if model not in IDEANETS:
                         model_initialized = False
                         models_loaded = get_models(models)
@@ -437,7 +436,7 @@ def classify_json():
 
     # if request.method == 'GET':
         # This is a placeholder for a more informative endpoint.
-    print "data: " + str(data)
+    app.logger.info("data: " + str(data))
     # time.sleep(5)
     # return make_custom_response(data, 200)
     return make_response(str(data))
