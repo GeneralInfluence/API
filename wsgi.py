@@ -1,7 +1,7 @@
 #!/usr/bin/env python 2
 """nginx server"""
 
-from api import app as application
+from api import app
 
 if __name__ == "__main__":
-    application.run()
+    app.run()
