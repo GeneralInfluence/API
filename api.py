@@ -148,9 +148,12 @@ def check_credentials():
 
     app_id  = str(request.args.get("app_id"))
     app_key = str(request.args.get("app_key"))
+    app.logger.info("Checking " + app_id + " against "  + APP_IDS)
     if app_id == None or app_key == None:
+        app.logger.info("They have to give us an id and key to work with!")
         raise Unauthorized()
     if (app_id in APP_IDS) & (app_key in APP_KEYS[app_id]):
+        app.logger.info("Are they trying to hack us?")
         return app_id, app_key
     raise Unauthorized()
 
@@ -412,9 +415,11 @@ def classify_json():
     app.logger.info("Testing testing 123")
     if request.method == 'GET':
         ### FORMALITIES FORMALITIES FORMALITIES FORMALITIES
-        app.logger.info("Got a file POST request") # Log that we got a request
+        app.logger.info("Got a file GET request") # Log that we got a request
         app.logger.info(request.data)
+
         app_id, app_key = check_credentials() # Extract and validate credentials.
+        app.logger.info("Credentials accepted.")
 
         data = ast.literal_eval(request.data)
         model_initialized = True
@@ -428,15 +433,19 @@ def classify_json():
                 if (model in MODEL_MAPS):
                     app.logger.info(model)
                     if model not in IDEANETS:
+                        app.logger.info("Initializing IDEANET.")
                         model_initialized = False
                         models_loaded = get_models(models)
                         if model in models_loaded:
+                            app.logger.info("IDEANET " +model+ " successfully initialized!")
                             model_initialized = True
                     if model_initialized:
                         ideanet = IDEANETS[model]
                         this_pred = ideanet.classify(sentences)
                         probabilities += this_pred['prob_0_1']
                         predictions.append(this_pred['pred'])
+                else:
+                    app.logger.info("Model not in MODEL_MAPS: " + model)
             data = {"status":"success",
                     "predictions":predictions,
                     "probabilities":probabilities}
