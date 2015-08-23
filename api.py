@@ -409,6 +409,7 @@ def classify_json():
         model_initialized = True
         try:
             sentences = data['sentences']
+            app.logger.info("Classifying sentence(s): " + sentences)
             models = data['model']
             predictions = []
             probabilities = []
