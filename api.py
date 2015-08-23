@@ -430,7 +430,7 @@ def classify_json():
         app.logger.info("data to process: " + str(request.data))
         try:
             sentences = data['sentences']
-            app.logger.info("Classifying sentence(s): " + sentences)
+            app.logger.info("Classifying sentence(s): " + str(sentences))
             models = data['model']
             predictions = []
             probabilities = []
@@ -442,9 +442,12 @@ def classify_json():
                         model_initialized = False
                         models_loaded = get_models(models)
                         if model in models_loaded:
-                            app.logger.info("IDEANET " +model+ " successfully initialized!")
+                            app.logger.info("IDEANET " +str(model)+ " successfully initialized!")
                             model_initialized = True
+                        else:
+                            app.logger.info("Failed to load IDEANET: " + str(model))
                     if model_initialized:
+                        app.logger.info("Classifying your sentence!")
                         ideanet = IDEANETS[model]
                         this_pred = ideanet.classify(sentences)
                         probabilities += this_pred['prob_0_1']
