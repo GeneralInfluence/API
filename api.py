@@ -146,6 +146,7 @@ def check_credentials():
        Raise Unauthorized error if not."""
     # request is a global variable from flask and contains all info about the request from the client.
 
+    app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
     app_key = str(request.args.get("app_key"))
     app.logger.info("Checking " + app_id + " against "  + APP_IDS)
