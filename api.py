@@ -57,7 +57,7 @@ CORS(app)
 
 HANDLER = FileHandler('./api.log')
 HANDLER.setLevel(logging.INFO)
-app.logger.addHandle(HANDLER)
+app.logger.addHandler(HANDLER)
 
 if USESSL:
     from OpenSSL import SSL
