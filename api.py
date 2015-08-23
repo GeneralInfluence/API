@@ -148,8 +148,10 @@ def check_credentials():
 
     app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
+    app.logger.info("app_id loaded")
     app_key = str(request.args.get("app_key"))
-    app.logger.info("Checking " + app_id + " against "  + APP_IDS)
+    app.logger.info("app_key loaded")
+    app.logger.info("Checking " + app_id + " against " + str(APP_IDS))
     if app_id == None or app_key == None:
         app.logger.info("They have to give us an id and key to work with!")
         raise Unauthorized()
