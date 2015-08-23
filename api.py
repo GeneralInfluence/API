@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """API to Data Community DC Data Lake built on Flask"""
 
-from flask import Flask, request, Response, make_response, current_app
+from flask import Flask, request, Response, make_response, logging
 from werkzeug.exceptions import NotFound, Unauthorized, UnsupportedMediaType, BadRequest
 import boto
 import os, inspect
@@ -13,15 +13,14 @@ import urllib, urllib2
 import sys
 import traceback
 import logging
+from logging import FileHandler
 import math
 import magic
 import xlrd
-from logging import FileHandler
 from logging.handlers import RotatingFileHandler
 import ast
 from datetime import timedelta
 from functools import update_wrapper
-from flask import Flask
 from flask.ext.cors import CORS
 import time
 
@@ -55,6 +54,10 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 CORS(app)
 # CORS(app, resources={ROOT + r"/*": {"origins": "*"}})
+
+HANDLER = FileHandler('./api.log')
+HANDLER.setLevel(logging.INFO)
+app.logger.addHandle(HANDLER)
 
 if USESSL:
     from OpenSSL import SSL
