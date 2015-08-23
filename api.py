@@ -156,8 +156,9 @@ def check_credentials():
         app.logger.info("They have to give us an id and key to work with!")
         raise Unauthorized()
     if (app_id in APP_IDS) & (app_key in APP_KEYS[app_id]):
-        app.logger.info("Are they trying to hack us?")
+        app.logger.info("Ok, they know what they are asking for. Moving on.")
         return app_id, app_key
+    app.logger.info("Are they trying to hack us?")
     raise Unauthorized()
 
 def check_credentials_and_status(task_id):
@@ -426,6 +427,7 @@ def classify_json():
 
         data = ast.literal_eval(request.data)
         model_initialized = True
+        app.logger.info("data to process: " + str(request.data))
         try:
             sentences = data['sentences']
             app.logger.info("Classifying sentence(s): " + sentences)
