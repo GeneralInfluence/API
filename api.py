@@ -348,6 +348,14 @@ def get_models(models):
 
     return models_loaded
 
+@app.route(ROOT + '/health_check/')
+def health_check():
+    """
+    To verify that errors are with the endpoints, not the server configuration
+    :return:
+    """
+    return "<h1 style='color:red'>Server is working!</h1>"
+
 # The @app.route function decorators map endpoints to functions.
 # @crossdomain(origin='*')
 # @cross_origin()
