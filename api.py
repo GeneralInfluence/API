@@ -417,7 +417,7 @@ def classify_json():
     :return:
     """
     app.logger.info("Testing testing 123")
-    if request.method == 'GET':
+    if request.method == 'POST':
         ### FORMALITIES FORMALITIES FORMALITIES FORMALITIES
         app.logger.info("Got a file GET request") # Log that we got a request
         app.logger.info(request.data)
