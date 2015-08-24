@@ -153,7 +153,7 @@ def check_credentials():
     app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
     app_key = str(request.args.get("app_key"))
-    app.logger.info("Origin: "+origin)
+    # app.logger.info("Origin: "+origin)
     app.logger.info("Checking " + app_id + " against " + str(APP_IDS))
     # if origin in ORIGINS_ALLOWED.keys():
     #     app_id = ORIGINS_ALLOWED[origin]
