@@ -146,19 +146,19 @@ def check_credentials():
        Raise Unauthorized error if not."""
     # request is a global variable from flask and contains all info about the request from the client.
 
-    try:
-        origin = str(request.environ['HTTP_ORIGIN'])
-    except:
-        origin = 'BLAH'
+    # try:
+    #     origin = str(request.environ['HTTP_ORIGIN'])
+    # except:
+    #     origin = 'BLAH'
     app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
     app_key = str(request.args.get("app_key"))
     app.logger.info("Origin: "+origin)
     app.logger.info("Checking " + app_id + " against " + str(APP_IDS))
-    if origin in ORIGINS_ALLOWED.keys():
-        app_id = ORIGINS_ALLOWED[origin]
-        app_key = APP_KEYS[app_id][0]
-        return app_id, app_key
+    # if origin in ORIGINS_ALLOWED.keys():
+    #     app_id = ORIGINS_ALLOWED[origin]
+    #     app_key = APP_KEYS[app_id][0]
+    #     return app_id, app_key
     if app_id == None or app_key == None:
         app.logger.info("They have to give us an id and key to work with!")
         raise Unauthorized()
