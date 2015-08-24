@@ -53,7 +53,7 @@ ROOT = "/v1/gizmoduck"
 app = Flask(__name__)
 app.config.from_object(__name__)
 # CORS(app)
-CORS(app, resources={ROOT + r"/*": {"origins": "*"}})
+CORS(app, resources={r"/v1/gizmoduck/*": {"origins": "*"}})
 
 HANDLER = FileHandler('./api.log')
 HANDLER.setLevel(logging.INFO)
