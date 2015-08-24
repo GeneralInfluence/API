@@ -52,8 +52,8 @@ from Preprocessing.loadCleanly import sheets as sh
 ROOT = "/v1/gizmoduck"
 app = Flask(__name__)
 app.config.from_object(__name__)
-CORS(app)
-# CORS(app, resources={ROOT + r"/*": {"origins": "*"}})
+# CORS(app)
+CORS(app, resources={ROOT + r"/*": {"origins": "*"}})
 
 HANDLER = FileHandler('./api.log')
 HANDLER.setLevel(logging.INFO)
