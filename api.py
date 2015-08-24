@@ -146,12 +146,16 @@ def check_credentials():
        Raise Unauthorized error if not."""
     # request is a global variable from flask and contains all info about the request from the client.
 
+    origin = request.environ['HTTP_ORIGIN']
     app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
-    app.logger.info("app_id loaded")
     app_key = str(request.args.get("app_key"))
-    app.logger.info("app_key loaded")
+    app.logger.info("Origin: "+origin)
     app.logger.info("Checking " + app_id + " against " + str(APP_IDS))
+    if origin in ORIGINS_ALLOWED.keys():
+        app_id = ORIGINS_ALLOWED[origin]
+        app_key = APP_KEYS[app_id][0]
+        return app_id, app_key
     if app_id == None or app_key == None:
         app.logger.info("They have to give us an id and key to work with!")
         raise Unauthorized()
@@ -419,10 +423,9 @@ def classify_json():
     app.logger.info("Testing testing 123")
     if request.method == 'POST':
         ### FORMALITIES FORMALITIES FORMALITIES FORMALITIES
-        origin = request.environ
+        origin = request.environ['HTTP_ORIGIN']
         app.logger.info("Got a file GET request from: "+origin) # Log that we got a request
-        app.logger.info(origin)
-	#app.logger.info(request.data)
+	    app.logger.info(request.data)
 
         app_id, app_key = check_credentials() # Extract and validate credentials.
         app.logger.info("Credentials accepted.")
