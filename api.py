@@ -419,9 +419,10 @@ def classify_json():
     app.logger.info("Testing testing 123")
     if request.method == 'POST':
         ### FORMALITIES FORMALITIES FORMALITIES FORMALITIES
-        origin = request.environ['HTTP_ORIGIN']
+        origin = request.environ
         app.logger.info("Got a file GET request from: "+origin) # Log that we got a request
-        app.logger.info(request.data)
+        app.logger.info(origin)
+	#app.logger.info(request.data)
 
         app_id, app_key = check_credentials() # Extract and validate credentials.
         app.logger.info("Credentials accepted.")
