@@ -425,7 +425,7 @@ def classify_json():
         ### FORMALITIES FORMALITIES FORMALITIES FORMALITIES
         origin = request.environ['HTTP_ORIGIN']
         app.logger.info("Got a file GET request from: "+origin) # Log that we got a request
-	    app.logger.info(request.data)
+        app.logger.info(request.data)
 
         app_id, app_key = check_credentials() # Extract and validate credentials.
         app.logger.info("Credentials accepted.")
