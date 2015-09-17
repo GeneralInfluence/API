@@ -52,10 +52,15 @@ from Preprocessing.loadCleanly import sheets as sh
 ROOT = "/v1/gizmoduck"
 app = Flask(__name__)
 app.config.from_object(__name__)
-# CORS(app)
-CORS(app, resources={r"/v1/gizmoduck/*": {"origins": "*"}})
 
-HANDLER = FileHandler('./api.log')
+# CORS(app)
+clients = ORIGIN_CLIENTS_ALLOWED.keys()
+ORIGINS_ALLOWED = [origin for client in clients for origin in ORIGIN_CLIENTS_ALLOWED[client]]
+# CORS(app, resources={r"/v1/gizmoduck/*": {"origins":"*"}})
+# CORS(app, resources={r"/v1/gizmoduck/*": {"origins":"http://untrustworthy.general-influence.com/"}})
+CORS(app, resources={r"/v1/gizmoduck/*": {"origins":ORIGINS_ALLOWED}})
+
+HANDLER = FileHandler(LOGFILE)
 HANDLER.setLevel(logging.INFO)
 app.logger.addHandler(HANDLER)
 
@@ -136,6 +141,19 @@ RED = redis.Redis(host=REDISHOST, port=REDISPORT, db=0)
 #             print "Got IOError: ", e
 #             break
 
+@app.after_request
+def add_cors(resp):
+    """ Ensure all responses have the CORS headers. This ensures any failures are also accessible
+        by the client. """
+    resp.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin',ORIGINS_ALLOWED)
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    resp.headers['Access-Control-Allow-Methods'] = 'POST'
+    resp.headers['Access-Control-Allow-Headers'] = request.headers.get(
+        'Access-Control-Request-Headers', 'Authorization' )
+    # set low for debugging
+    if app.debug:
+        resp.headers['Access-Control-Max-Age'] = '1'
+    return resp
 
 def make_key(app_id, app_key, task_id):
     """This is a naming convention for both redis and s3"""
@@ -146,14 +164,14 @@ def check_credentials():
        Raise Unauthorized error if not."""
     # request is a global variable from flask and contains all info about the request from the client.
 
-    # try:
-    #     origin = str(request.environ['HTTP_ORIGIN'])
-    # except:
-    #     origin = 'BLAH'
+    try:
+        origin = str(request.environ['HTTP_ORIGIN'])
+    except:
+        origin = 'BLAH'
     app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
     app_key = str(request.args.get("app_key"))
-    # app.logger.info("Origin: "+origin)
+    app.logger.info("Origin: "+origin)
     app.logger.info("Checking " + app_id + " against " + str(APP_IDS))
     # if origin in ORIGINS_ALLOWED.keys():
     #     app_id = ORIGINS_ALLOWED[origin]
@@ -371,6 +389,7 @@ def health_check():
     To verify that errors are with the endpoints, not the server configuration
     :return:
     """
+    app.logger.info("Testing Health Check.")
     return "<h1 style='color:red'>Server is working!</h1>"
 
 # The @app.route function decorators map endpoints to functions.
@@ -487,6 +506,7 @@ def classify_files():
 
     :return:
     """
+
     if request.method == "POST":
         # Log that we got a request
         app.logger.error("Got a file POST request")
