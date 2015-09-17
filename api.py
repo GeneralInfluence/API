@@ -38,8 +38,6 @@ import time
 # Get the latest ThreeScale python library here: https://github.com/3scale/3scale_ws_api_for_python
 # and follow the directions to install
 
-from config import *
-
 # Assumes custom packages are either in the same directory or the parent directory for importing
 this_dir = os.path.realpath( os.path.abspath( os.path.split( inspect.getfile( inspect.currentframe() ))[0]))
 parent_dir = os.path.realpath(os.path.abspath(os.path.join(this_dir,"../")))
@@ -47,15 +45,22 @@ sys.path.insert(0, this_dir)
 sys.path.insert(0, parent_dir)
 
 from IdeaNets.models.lstm.scode.lstm_class import LSTM as lstm
-from Preprocessing.loadCleanly import sheets as sh
+from Munge.loadCleanly import sheets as sh
 
 ROOT = "/v1/gizmoduck"
 app = Flask(__name__)
 app.config.from_object(__name__)
-# CORS(app)
-CORS(app, resources={r"/v1/gizmoduck/*": {"origins": "*"}})
+# app.config.from_envvar('config.py', silent=True) # I would like this to replace from config.py ... but I need to test it!
+from config import *
 
-HANDLER = FileHandler('./api.log')
+# CORS(app)
+clients = ORIGIN_CLIENTS_ALLOWED.keys()
+ORIGINS_ALLOWED = [origin for client in clients for origin in ORIGIN_CLIENTS_ALLOWED[client]]
+# CORS(app, resources={r"/v1/gizmoduck/*": {"origins":"*"}})
+# CORS(app, resources={r"/v1/gizmoduck/*": {"origins":"http://untrustworthy.general-influence.com/"}})
+CORS(app, resources={r"/v1/gizmoduck/*": {"origins":ORIGINS_ALLOWED}})
+
+HANDLER = FileHandler(LOGFILE)
 HANDLER.setLevel(logging.INFO)
 app.logger.addHandler(HANDLER)
 
@@ -72,9 +77,6 @@ IDEANETS = {}
 # IDEANETS[model] = lstm() # I can see the type of model to use being an input at some point.
 # IDEANETS[model].load_pickle(model_path)
 
-MAX_MEGABYTES = 2
-app.config['MAX_CONTENT_LENGTH'] = MAX_MEGABYTES * 1024 * 1024
-
 ACCEPTED_MIMETYPES = ["text/plain",
                       "text/csv",
                       "application/vnd.ms-excel",
@@ -82,7 +84,6 @@ ACCEPTED_MIMETYPES = ["text/plain",
 
 ERROR_MESSAGES = {404: "The requested resource cannot be found. Please check the API documentation and try again.",
                   401: "You are not authenticated to use this resource. Please provide a valid app_id and app_key pair.",
-                  413: "The file that was submitted is too large. Please submit a file smaller than %i megabytes." % MAX_MEGABYTES,
                   415: "The file that was submitted is an unsupported type. Please submit valid plain text, CSV, or an Excel spreadsheet.",
                   500: "An error has occurred in the analysis. Please contact support@gosynapsify.com for assistance.",
                   400: "The request is missing required parameters or otherwise malformed. Please check the API documentation and try again."
@@ -136,6 +137,19 @@ RED = redis.Redis(host=REDISHOST, port=REDISPORT, db=0)
 #             print "Got IOError: ", e
 #             break
 
+@app.after_request
+def add_cors(resp):
+    """ Ensure all responses have the CORS headers. This ensures any failures are also accessible
+        by the client. """
+    resp.headers['Access-Control-Allow-Origin'] = request.headers.get('Origin',ORIGINS_ALLOWED)
+    resp.headers['Access-Control-Allow-Credentials'] = 'true'
+    resp.headers['Access-Control-Allow-Methods'] = 'POST'
+    resp.headers['Access-Control-Allow-Headers'] = request.headers.get(
+        'Access-Control-Request-Headers', 'Authorization' )
+    # set low for debugging
+    if app.debug:
+        resp.headers['Access-Control-Max-Age'] = '1'
+    return resp
 
 def make_key(app_id, app_key, task_id):
     """This is a naming convention for both redis and s3"""
@@ -146,14 +160,14 @@ def check_credentials():
        Raise Unauthorized error if not."""
     # request is a global variable from flask and contains all info about the request from the client.
 
-    # try:
-    #     origin = str(request.environ['HTTP_ORIGIN'])
-    # except:
-    #     origin = 'BLAH'
+    try:
+        origin = str(request.environ['HTTP_ORIGIN'])
+    except:
+        origin = 'BLAH'
     app.logger.info("Checking Credentials.")
     app_id  = str(request.args.get("app_id"))
     app_key = str(request.args.get("app_key"))
-    # app.logger.info("Origin: "+origin)
+    app.logger.info("Origin: "+origin)
     app.logger.info("Checking " + app_id + " against " + str(APP_IDS))
     # if origin in ORIGINS_ALLOWED.keys():
     #     app_id = ORIGINS_ALLOWED[origin]
@@ -212,47 +226,6 @@ def make_custom_response(data, code, headers=None):
         for key, value in headers.items():
             response.headers[key] = value
     return response
-
-# def crossdomain(origin=None, methods=None, headers=None,
-#                 max_age=21600, attach_to_all=True,
-#                 automatic_options=True):
-#     if methods is not None:
-#         methods = ', '.join(sorted(x.upper() for x in methods))
-#     if headers is not None and not isinstance(headers, basestring):
-#         headers = ', '.join(x.upper() for x in headers)
-#     if not isinstance(origin, basestring):
-#         origin = ', '.join(origin)
-#     if isinstance(max_age, timedelta):
-#         max_age = max_age.total_seconds()
-#
-#     def get_methods():
-#         if methods is not None:
-#             return methods
-#
-#         options_resp = current_app.make_default_options_response()
-#         return options_resp.headers['allow']
-#
-#     def decorator(f):
-#         def wrapped_function(*args, **kwargs):
-#             if automatic_options and request.method == 'OPTIONS':
-#                 resp = current_app.make_default_options_response()
-#             else:
-#                 resp = make_response(f(*args, **kwargs))
-#             if not attach_to_all and request.method != 'OPTIONS':
-#                 return resp
-#
-#             h = resp.headers
-#
-#             h['Access-Control-Allow-Origin'] = origin
-#             h['Access-Control-Allow-Methods'] = get_methods()
-#             h['Access-Control-Max-Age'] = str(max_age)
-#             if headers is not None:
-#                 h['Access-Control-Allow-Headers'] = headers
-#             return resp
-#
-#         f.provide_automatic_options = False
-#         return update_wrapper(wrapped_function, f)
-#     return decorator
 
 @app.errorhandler(401)
 @app.errorhandler(404)
@@ -371,6 +344,7 @@ def health_check():
     To verify that errors are with the endpoints, not the server configuration
     :return:
     """
+    app.logger.info("Testing Health Check.")
     return "<h1 style='color:red'>Server is working!</h1>"
 
 # The @app.route function decorators map endpoints to functions.
@@ -487,6 +461,7 @@ def classify_files():
 
     :return:
     """
+
     if request.method == "POST":
         # Log that we got a request
         app.logger.error("Got a file POST request")
